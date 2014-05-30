@@ -12,7 +12,7 @@ object Main extends App {
     ImageProcessor.processImage(firstImage)
     ImageProcessor.processImage(secondImage)
     
-    (new Neighbourhood).findNearestPointMethod(firstImage, secondImage)
+    (new Neighbourhood).findNearestPointMethod(firstImage points, secondImage points)
     (new Ransac).process(firstImage, 0.1f, 1.f, 1000, 0.001f)
     
     GUI.show(firstImage, secondImage)

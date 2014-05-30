@@ -1,22 +1,21 @@
 package methods
 
-import helpers.AffineTransform
 import Neighbourhood._
 import helpers.AnalyzedImage
-import NeighbourhoodCohesion._
 import models.Point
 import scala.collection.JavaConversions._
 import scala.util.Random._
 import models.Triangle
 import java.util.ArrayList
 import java.util.Collections
+import helpers.AffineTransform
 
 class Ransac {
     def process(image: AnalyzedImage, r: Float, R: Float, iterations: Int, diff: Float) = {
         val bestModel = execute(image, r, R, iterations)
         image.points.foreach(point => {
-            val imagePoint = bestModel.execute(point)
-            if(checkDistance(imagePoint, point.nearest) > diff) {
+            val imagePoint = bestModel.transform(point, null)
+            if(imagePoint.distanceSq(point.nearest) > diff) {
                 point.nearest.nearest = null
                 point.nearest = null
             }
@@ -25,13 +24,13 @@ class Ransac {
     }
 
     def execute(image: AnalyzedImage, r: Float, R: Float, iterations: Int) = {
-        var minError = Float.MaxValue
+        var minError = Double.MaxValue
         var bestModel: AffineTransform = null
 
         (0 until iterations) foreach { i =>
             val triangle = chooseTriangle(image, r, R)
             if (triangle != null) {
-                val affineTransform = AffineTransform(triangle)
+                val affineTransform = new AffineTransform(triangle)
                 val error = calculateError(affineTransform, image)
                 if (error < minError) {
                     bestModel = affineTransform
@@ -60,8 +59,8 @@ class Ransac {
     }
 
     def calculateError(affineTransform: AffineTransform, image: AnalyzedImage) =
-        image.points.foldLeft(0.f)((error, point) =>
-            error + checkDistance(affineTransform.execute(point), point.nearest))
+        image.points.foldLeft(0.d)((error, point) =>
+            error + affineTransform.transform(point, null).distanceSq(point.nearest))
 
     def passTest(x1: Float, y1: Float, x2: Float, y2: Float, r: Float, R: Float) =
         r * r < (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) &&

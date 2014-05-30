@@ -1,38 +1,24 @@
 package methods
 
-import models.Point
-import models.Pair
-import scala.collection.JavaConversions._
-import helpers.AnalyzedImage
 import Neighbourhood._
-import NeighbourhoodCohesion._
-import java.util.ArrayList
-import java.util.Collections
-
-object NeighbourhoodCohesion {
-    def checkDistance(firstPoint: Point, secondPoint: Point) = {
-        val diffX = firstPoint.x - secondPoint.x
-        val diffY = firstPoint.y - secondPoint.y
-        diffX * diffX + diffY * diffY
-    }
-}
+import helpers.AnalyzedImage
+import models.Pair
+import models.Point
+import scala.collection.JavaConversions._
 
 class NeighbourhoodCohesion {
-    implicit class Crossable[X](xs: ArrayList[X]) {
-        def cross[Y](ys: ArrayList[Y]) = for { x <- xs; y <- ys } yield (x, y)
+    implicit class Crossable[X](xs: List[X]) {
+        def cross[Y](ys: List[Y]) = for { x <- xs; y <- ys } yield (x, y)
     }
 
     def analyze(firstImage: AnalyzedImage, secondImage: AnalyzedImage, numberOfNeighbours: Int, cohesionLevel: Float) = {
         firstImage.points foreach (point => {
-            val distanceArray   = new ArrayList[Pair]
-            val neighboursArray = new ArrayList[Pair]
+            val distancesArrayFirst   = calculateDistance(point, firstImage)
+            val distancesArraySecond  = calculateDistance(point.nearest, secondImage)
+            val neighboursArrayFirst  = findNeighbours(point, distancesArrayFirst, numberOfNeighbours)
+            val neighboursArraySecond = findNeighbours(point.nearest, distancesArraySecond, numberOfNeighbours)
 
-            calculateDistance(point, firstImage, distanceArray)
-            findNeighbours(point, distanceArray, numberOfNeighbours)
-            calculateDistance(point.nearest, secondImage, neighboursArray)
-            findNeighbours(point.nearest, neighboursArray, numberOfNeighbours)
-
-            val cohesion = checkCohesion(distanceArray, neighboursArray)
+            val cohesion = checkCohesion(distancesArrayFirst, distancesArraySecond)
             val cohesionPercentage = cohesion.toFloat / numberOfNeighbours
             if (cohesionPercentage < cohesionLevel) point.nearest = null
         })
@@ -42,21 +28,13 @@ class NeighbourhoodCohesion {
         firstImage.points foreach (println)
     }
 
-    def checkCohesion(distanceArray: ArrayList[Pair], neighboursArray: ArrayList[Pair]) = {
+    def checkCohesion(distanceArray: List[Pair], neighboursArray: List[Pair]) = {
         distanceArray.cross(neighboursArray).foldLeft(0)((result, element) =>
-            element match {
-                case (p1, p2) => result + (if (p1.point.nearest == p2.point) 1 else 0)
-            })
+            result + (if (element._1.point.nearest equals element._2.point) 1 else 0))
     }
 
-    def calculateDistance(point: Point, image: AnalyzedImage, distanceArray: ArrayList[Pair]) = {
-        image.points foreach (p =>
-            if (p != point) distanceArray add new Pair(p, checkDistance(point, p)))
-    }
+    def calculateDistance(point: Point, image: AnalyzedImage) =
+        image.points.map(p => if (!p.equals(point)) Some(new Pair(p, point distanceSq p)) else None).toList.flatten
 
-    def findNeighbours(point: Point, distanceArray: ArrayList[Pair], number: Int) = {
-        Collections sort (distanceArray)
-        val toRemove = Array
-        (distanceArray.length - 1 to number by -1) foreach (index => distanceArray remove index)
-    }
+    def findNeighbours(point: Point, distanceArray: List[Pair], number: Int) = distanceArray.sorted take number
 }

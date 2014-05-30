@@ -10,4 +10,4 @@ As a result you should get `IMAGE.siff` file.
 
 3. Do previous operation for two images that you want to compare.
 
-4. Set name of your images to compare in `Main.scala` and run the program.
+4. ArrayList name of your images to compare in `Main.scala` and run the program.

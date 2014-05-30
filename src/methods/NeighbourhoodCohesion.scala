@@ -1,4 +1,4 @@
-package methods
+ package methods
 
 import Neighbourhood._
 import helpers.AnalyzedImage
@@ -15,26 +15,24 @@ class NeighbourhoodCohesion {
         firstImage.points foreach (point => {
             val distancesArrayFirst   = calculateDistance(point, firstImage)
             val distancesArraySecond  = calculateDistance(point.nearest, secondImage)
-            val neighboursArrayFirst  = findNeighbours(point, distancesArrayFirst, numberOfNeighbours)
-            val neighboursArraySecond = findNeighbours(point.nearest, distancesArraySecond, numberOfNeighbours)
+            val neighboursArrayFirst  = findNeighbours(distancesArrayFirst, numberOfNeighbours)
+            val neighboursArraySecond = findNeighbours(distancesArraySecond, numberOfNeighbours)
 
             val cohesion = checkCohesion(distancesArrayFirst, distancesArraySecond)
             val cohesionPercentage = cohesion.toFloat / numberOfNeighbours
             if (cohesionPercentage < cohesionLevel) point.nearest = null
         })
-        removeAlone(firstImage)
-        removeAlone(secondImage)
-        println(firstImage.points.size)
-        firstImage.points foreach (println)
+        removeAlone(firstImage points)
+        removeAlone(secondImage points)
     }
+    
+    def calculateDistance(point: Point, image: AnalyzedImage) =
+            image.points.map(p => if (!p.equals(point)) Some(new Pair(p, point featureDistance p)) else None).toList.flatten
 
     def checkCohesion(distanceArray: List[Pair], neighboursArray: List[Pair]) = {
         distanceArray.cross(neighboursArray).foldLeft(0)((result, element) =>
             result + (if (element._1.point.nearest equals element._2.point) 1 else 0))
     }
 
-    def calculateDistance(point: Point, image: AnalyzedImage) =
-        image.points.map(p => if (!p.equals(point)) Some(new Pair(p, point distanceSq p)) else None).toList.flatten
-
-    def findNeighbours(point: Point, distanceArray: List[Pair], number: Int) = distanceArray.sorted take number
+    def findNeighbours(distanceArray: List[Pair], number: Int) = distanceArray.sorted take number
 }

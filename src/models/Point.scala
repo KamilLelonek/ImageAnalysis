@@ -1,5 +1,14 @@
 package models
 
 import java.awt.geom.Point2D
+import Math.abs
 
-class Point(x: Float, y: Float, val properties: Array[Int] = new Array[Int](128), var nearest: Point = null) extends Point2D.Float(x, y)
+object Point {
+    def apply(x: Float, y: Float, properties: List[Int]) = new Point(x, y, properties)
+}
+
+class Point(x: Float, y: Float, val properties: List[Int], var nearest: Point = null)
+        extends Point2D.Float(x, y) {
+    def featureDistance(point: Point) =
+        this.properties.zip(point.properties).map(p => abs(p._1 - p._2)).sum
+}

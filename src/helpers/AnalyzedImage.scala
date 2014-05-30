@@ -11,11 +11,4 @@ object AnalyzedImage {
         new AnalyzedImage(s"images/${path}.sift", ImageIO read(new File(s"images/${path}.png")))
 }
 
-class AnalyzedImage(
-        val siftPath: String,
-        val image: java.awt.Image,
-        val points: ArrayList[Point] = new ArrayList[Point]()
-        ) {
-    lazy val getXResolution = image getWidth(null)
-    lazy val getYResolution = image getHeight(null)
-}
+class AnalyzedImage(val siftPath: String, val image: java.awt.Image, val points: ArrayList[Point] = new ArrayList)
